@@ -15,16 +15,6 @@ primary_region = 'sjc'
 
 [[services]]
   protocol = 'tcp'
-  internal_port = 8200
-  auto_stop_machines = 'suspend'
-  auto_start_machines = true
-  min_machines_running = 1
-
-  [[services.ports]]
-    port = 8200
-
-[[services]]
-  protocol = 'tcp'
   internal_port = 2222
   auto_stop_machines = 'off'
   min_machines_running = 1
