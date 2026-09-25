@@ -73,6 +73,11 @@ chmod 600 "$TLS_DIR/listener-key.pem"
 LISTENER_CN=$(openssl x509 -in "$TLS_DIR/listener-cert.pem" -noout -subject 2>/dev/null | sed 's/.*CN *= *//')
 echo "Bao listener cert CN=$LISTENER_CN"
 
+# Host key on the volume so the fingerprint survives a redeploy.
+mkdir -p /bao/data/ssh /run/sshd
+[ -f /bao/data/ssh/ssh_host_ed25519_key ] || ssh-keygen -q -t ed25519 -N '' -f /bao/data/ssh/ssh_host_ed25519_key
+/usr/sbin/sshd || echo "WARN: sshd failed to start; Bao continues without the SSH tunnel"
+
 echo "Waiting for FDB cluster..."
 for i in $(seq 1 30); do
   if fdbcli --exec "status minimal" 2>/dev/null | grep -q "available"; then

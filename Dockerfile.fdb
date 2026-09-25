@@ -67,9 +67,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get update && apt-get install -y --no-install-recommends tailscale && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# SSH tunnel to the listener for Bao-signed user certificates (RFD 2255)
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-server && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* && \
+    useradd --system --no-create-home --shell /usr/sbin/nologin tunnel && usermod -p '*' tunnel
+COPY sshd_config /etc/ssh/sshd_config
+COPY bao_ssh_ca.pub /etc/ssh/bao_ssh_ca.pub
+
 COPY config-fdb.hcl /bao/config/config.hcl
 COPY entrypoint-fdb.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8200 8201
+EXPOSE 2222 8200 8201
 ENTRYPOINT ["/entrypoint.sh"]

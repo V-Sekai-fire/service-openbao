@@ -1,0 +1,21 @@
+# Forwarding to Bao's listener only, for a Bao-signed user certificate (RFD 2255).
+Port 2222
+HostKey /bao/data/ssh/ssh_host_ed25519_key
+PidFile /run/sshd.pid
+UsePAM no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+AuthorizedKeysFile none
+TrustedUserCAKeys /etc/ssh/bao_ssh_ca.pub
+AllowUsers tunnel
+PermitRootLogin no
+AllowTcpForwarding local
+PermitOpen 127.0.0.1:8200
+AllowAgentForwarding no
+AllowStreamLocalForwarding no
+X11Forwarding no
+PermitTTY no
+PermitTunnel no
+GatewayPorts no
+ForceCommand /usr/sbin/nologin
