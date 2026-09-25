@@ -19,3 +19,11 @@ PermitTTY no
 PermitTunnel no
 GatewayPorts no
 ForceCommand /usr/sbin/nologin
+# Forwarding only, like a git host's SSH: no shell, exec or subsystem session at all.
+MaxSessions 0
+PermitUserRC no
+PermitUserEnvironment no
+MaxAuthTries 2
+LoginGraceTime 15
+ClientAliveInterval 30
+ClientAliveCountMax 4
