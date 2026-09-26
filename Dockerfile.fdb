@@ -38,6 +38,18 @@ RUN cd plugin && \
     CGO_ENABLED=1 go build -tags libsqlite3 -trimpath -o /usr/bin/sqlite-fdb . && \
     sha256sum /usr/bin/sqlite-fdb | cut -d' ' -f1 > /usr/bin/sqlite-fdb.sha256
 
+# vault-plugin-secrets-github: GitHub App installation-token secrets engine.
+# Lands unregistered in /bao/plugins/; an operator registers + enables it once,
+# post-deploy, then configures it with the App id and private key.
+WORKDIR /gh-plugin-build
+ARG CACHEBUST_GH=1
+RUN git clone --depth 1 https://github.com/martinbaillie/vault-plugin-secrets-github.git . && \
+    go mod tidy && \
+    CGO_ENABLED=0 go build -trimpath \
+      -ldflags "-X github.com/martinbaillie/vault-plugin-secrets-github/v2/github.projectName=vault-plugin-secrets-github" \
+      -o /usr/bin/vault-plugin-secrets-github . && \
+    sha256sum /usr/bin/vault-plugin-secrets-github | cut -d' ' -f1 > /usr/bin/vault-plugin-secrets-github.sha256
+
 FROM debian:bookworm-slim
 
 ARG FDB_VERSION=7.3.79
@@ -54,6 +66,8 @@ RUN apt-get update && \
 COPY --from=builder /usr/bin/bao /usr/bin/bao
 COPY --from=builder /usr/bin/sqlite-fdb        /bao/plugins/sqlite-fdb
 COPY --from=builder /usr/bin/sqlite-fdb.sha256 /bao/plugins/sqlite-fdb.sha256
+COPY --from=builder /usr/bin/vault-plugin-secrets-github        /bao/plugins/vault-plugin-secrets-github
+COPY --from=builder /usr/bin/vault-plugin-secrets-github.sha256 /bao/plugins/vault-plugin-secrets-github.sha256
 RUN mkdir -p /bao/config /bao/data /bao/data/tls /bao/plugins
 
 
