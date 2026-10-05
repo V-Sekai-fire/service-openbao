@@ -1,6 +1,6 @@
 # service-openbao
 
-The workspace's secrets server: OpenBao built with a FoundationDB storage backend and deployed as one hosted machine.
+The workspace's secrets server: OpenBao built with a FoundationDB storage backend and deployed as a hosted app.
 
 ## What it is for
 
