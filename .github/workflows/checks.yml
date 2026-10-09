@@ -1,0 +1,37 @@
+name: checks
+on:
+  push:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commits:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: fetch the workspace commit-style gate
+        run: curl -fsSL -o /tmp/check_commit_style.py https://raw.githubusercontent.com/V-Sekai-fire/manuals-weftspun/main/scripts/check_commit_style.py
+      - name: commit-style self-test (controls)
+        run: python /tmp/check_commit_style.py --self-test
+      - name: commit subjects against the base
+        if: github.event_name == 'pull_request'
+        run: python /tmp/check_commit_style.py --base origin/${{ github.base_ref }}
+  shell:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: entrypoint parses
+        run: bash -n entrypoint-fdb.sh
+      - name: control, a planted syntax error fails
+        run: |
+          printf 'if then\n' > /tmp/broken.sh
+          if bash -n /tmp/broken.sh 2>/dev/null; then echo "bash -n passed a broken script"; exit 1; fi
