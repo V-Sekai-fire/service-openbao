@@ -42,10 +42,13 @@ RUN cd plugin && \
 # Lands unregistered in /bao/plugins/; an operator registers + enables it once,
 # post-deploy, then configures it with the App id and private key.
 WORKDIR /gh-plugin-build
-ARG CACHEBUST_GH=1
-RUN git clone --depth 1 https://github.com/martinbaillie/vault-plugin-secrets-github.git . && \
-    go mod tidy && \
-    CGO_ENABLED=0 go build -trimpath \
+# Pinned: a build from upstream HEAD changes the binary, and so its sha256,
+# whenever upstream moves. Bump the tag and its commit together.
+ARG GH_PLUGIN_TAG=v2.3.2
+ARG GH_PLUGIN_COMMIT=0ee76ab625aaa0fa5fbd36074e662caf016c90b9
+RUN git clone --depth 1 -b "${GH_PLUGIN_TAG}" https://github.com/martinbaillie/vault-plugin-secrets-github.git . && \
+    test "$(git rev-parse HEAD)" = "${GH_PLUGIN_COMMIT}" && \
+    CGO_ENABLED=0 go build -mod=readonly -trimpath \
       -ldflags "-X github.com/martinbaillie/vault-plugin-secrets-github/v2/github.projectName=vault-plugin-secrets-github" \
       -o /usr/bin/vault-plugin-secrets-github . && \
     sha256sum /usr/bin/vault-plugin-secrets-github | cut -d' ' -f1 > /usr/bin/vault-plugin-secrets-github.sha256
