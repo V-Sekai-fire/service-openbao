@@ -38,18 +38,6 @@ RUN cd plugin && \
     CGO_ENABLED=1 go build -tags libsqlite3 -trimpath -o /usr/bin/sqlite-fdb . && \
     sha256sum /usr/bin/sqlite-fdb | cut -d' ' -f1 > /usr/bin/sqlite-fdb.sha256
 
-# vault-plugin-secrets-github: GitHub App installation-token secrets engine.
-# Lands unregistered in /bao/plugins/; an operator registers + enables it once,
-# post-deploy, then configures it with the App id and private key.
-WORKDIR /gh-plugin-build
-ARG CACHEBUST_GH=1
-RUN git clone --depth 1 https://github.com/martinbaillie/vault-plugin-secrets-github.git . && \
-    go mod tidy && \
-    CGO_ENABLED=0 go build -trimpath \
-      -ldflags "-X github.com/martinbaillie/vault-plugin-secrets-github/v2/github.projectName=vault-plugin-secrets-github" \
-      -o /usr/bin/vault-plugin-secrets-github . && \
-    sha256sum /usr/bin/vault-plugin-secrets-github | cut -d' ' -f1 > /usr/bin/vault-plugin-secrets-github.sha256
-
 FROM debian:bookworm-slim
 
 ARG FDB_VERSION=7.3.79
@@ -66,8 +54,18 @@ RUN apt-get update && \
 COPY --from=builder /usr/bin/bao /usr/bin/bao
 COPY --from=builder /usr/bin/sqlite-fdb        /bao/plugins/sqlite-fdb
 COPY --from=builder /usr/bin/sqlite-fdb.sha256 /bao/plugins/sqlite-fdb.sha256
-COPY --from=builder /usr/bin/vault-plugin-secrets-github        /bao/plugins/vault-plugin-secrets-github
-COPY --from=builder /usr/bin/vault-plugin-secrets-github.sha256 /bao/plugins/vault-plugin-secrets-github.sha256
+
+# vault-plugin-secrets-github: GitHub App installation-token secrets engine.
+# A pinned release asset, not a fresh build: Bao's plugin catalog stores the
+# binary's SHA-256, and a rebuild with a newer Go toolchain changes the hash,
+# which leaves the github/ mount unloaded after a deploy until someone
+# re-registers it. Bump the URL and hash together, then re-register once.
+ARG GH_PLUGIN_URL=https://github.com/V-Sekai-fire/service-openbao/releases/download/plugin-github-0ee76ab-go1.27.2/vault-plugin-secrets-github
+ARG GH_PLUGIN_SHA256=2236c72b90d7e7b439edc47aa76f9231216ef3ad98cf1093927924140fb90d5e
+RUN mkdir -p /bao/plugins && curl -fsSL "$GH_PLUGIN_URL" -o /bao/plugins/vault-plugin-secrets-github && \
+    echo "$GH_PLUGIN_SHA256  /bao/plugins/vault-plugin-secrets-github" | sha256sum -c - && \
+    chmod 0755 /bao/plugins/vault-plugin-secrets-github && \
+    echo "$GH_PLUGIN_SHA256" > /bao/plugins/vault-plugin-secrets-github.sha256
 RUN mkdir -p /bao/config /bao/data /bao/data/tls /bao/plugins
 
 
