@@ -18,4 +18,4 @@ fly deploy
 
 ## Licence
 
-No licence file is present. `checks/tunnel_ladder.py` carries an `Apache-2.0 OR MIT` SPDX header.
+MIT. See [LICENSE](LICENSE).
