@@ -70,6 +70,7 @@ s0=$(serial)
 check "the listener serves the bootstrap certificate (serial read)" test -n "$s0"
 refused "control: the root-signed bootstrap certificate cannot log in to renew" run_renew RENEW_DAYS=100 "$HERE/renew-listener.sh" once
 check "control: the listener still serves the old certificate after the refused renewal" test "$(serial)" = "$s0"
+check "control: the refused renewal leaves no key behind" sh -c "! ls -a tls/renewed 2>/dev/null | grep -q new"
 
 # Bootstrap, as production does: one certificate from the new issuer, installed by the operator.
 openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -subj "/CN=weftspun-bao.internal" \

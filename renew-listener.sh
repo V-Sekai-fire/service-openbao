@@ -27,9 +27,9 @@ renew_once() {
 		return 0
 	fi
 	mkdir -p "$RENEW_DIR"
-	local w
-	w=$(mktemp -d "$RENEW_DIR/.new.XXXX")
-	trap 'rm -rf "$w"' EXIT
+	W=$(mktemp -d "$RENEW_DIR/.new.XXXX")
+	trap 'rm -rf "$W"' EXIT
+	local w=$W
 	openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -subj "/CN=$SERVER_NAME" \
 		-keyout "$w/key.pem" -out "$w/req.csr" 2>/dev/null
 	export BAO_ADDR=https://$LISTENER_ADDR BAO_TLS_SERVER_NAME=$SERVER_NAME BAO_CACERT=$TLS_DIR/ca-chain.pem \
