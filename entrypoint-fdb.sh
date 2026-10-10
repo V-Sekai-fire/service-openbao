@@ -7,9 +7,10 @@ set -euo pipefail
 # breaking Bao.
 if [ -n "${TS_AUTHKEY:-}" ]; then
   echo "Starting Tailscale sidecar..."
-  mkdir -p /var/lib/tailscale /var/run/tailscale
+  # State on the volume, so a restart rejoins as the same node under the same name.
+  mkdir -p /bao/data/tailscale /var/run/tailscale
   /usr/sbin/tailscaled \
-      --state=/var/lib/tailscale/tailscaled.state \
+      --state=/bao/data/tailscale/tailscaled.state \
       --socket=/var/run/tailscale/tailscaled.sock \
       --tun=userspace-networking &
   sleep 2
@@ -70,6 +71,16 @@ echo "$BAO_TLS_KEY_B64"       | base64 -d > "$TLS_DIR/listener-key.pem"
 echo "$BAO_TLS_CA_CHAIN_B64"  | base64 -d > "$TLS_DIR/ca-chain.pem"
 chmod 600 "$TLS_DIR/listener-key.pem"
 
+# A certificate renewed by renew-listener.sh outlives the one in the secret; serve whichever ends later.
+RENEWED="$TLS_DIR/renewed"
+enddate() { date -d "$(openssl x509 -in "$1" -noout -enddate | cut -d= -f2)" +%s; }
+if [ -f "$RENEWED/listener-cert.pem" ] && [ -f "$RENEWED/listener-key.pem" ] &&
+   [ "$(enddate "$RENEWED/listener-cert.pem")" -gt "$(enddate "$TLS_DIR/listener-cert.pem")" ]; then
+  cp "$RENEWED/listener-cert.pem" "$TLS_DIR/listener-cert.pem"
+  cp "$RENEWED/listener-key.pem" "$TLS_DIR/listener-key.pem"
+  echo "Bao listener cert from renewed/"
+fi
+
 LISTENER_CN=$(openssl x509 -in "$TLS_DIR/listener-cert.pem" -noout -subject 2>/dev/null | sed 's/.*CN *= *//')
 echo "Bao listener cert CN=$LISTENER_CN"
 
@@ -100,4 +111,5 @@ if [ "${BAO_RECOVERY:-0}" = 1 ]; then
   echo "STARTING IN RECOVERY MODE"
   exec dumb-init bao server -recovery -config=/bao/config/config.hcl
 fi
+/usr/local/bin/renew-listener.sh loop &
 exec dumb-init bao server -config=/bao/config/config.hcl

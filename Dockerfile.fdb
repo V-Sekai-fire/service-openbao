@@ -90,7 +90,8 @@ COPY bao_ssh_ca.pub /etc/ssh/bao_ssh_ca.pub
 
 COPY config-fdb.hcl /bao/config/config.hcl
 COPY entrypoint-fdb.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY renew-listener.sh /usr/local/bin/renew-listener.sh
+RUN chmod +x /entrypoint.sh /usr/local/bin/renew-listener.sh
 
 EXPOSE 2222 8200 8201
 ENTRYPOINT ["/entrypoint.sh"]
