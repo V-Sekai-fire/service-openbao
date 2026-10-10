@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: entrypoint parses
-        run: bash -n entrypoint-fdb.sh
+        run: bash -n entrypoint-fdb.sh renew-listener.sh listener-pki-setup.sh checks/listener_renewal.sh
       - name: control, a planted syntax error fails
         run: |
           printf 'if then\n' > /tmp/broken.sh
