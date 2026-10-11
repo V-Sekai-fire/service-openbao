@@ -13,8 +13,10 @@ an SSH tunnel with a certificate the server signs itself. RFD 2140 owns the stor
 ## Deploy
 
 ```sh
-fly deploy
+fly deploy --build-secret GH_TOKEN="$(gh auth token)"
 ```
+
+The token reads the private service-bao-taskweft release asset during the build; it is not kept in the image.
 
 ## Licence
 

@@ -81,6 +81,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get update && apt-get install -y --no-install-recommends tailscale && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# bao-plugin-taskweft: the credit ledger engine (RFD 2305), mounted at credits/.
+# A pinned release asset (service-bao-taskweft v0.1.0-dev.1), checked against
+# its SHA-256 so the plugin catalog hash survives a deploy. The repository is
+# private, so the asset comes through the API with a token passed as the build
+# secret GH_TOKEN. Bump the asset id and hash together, then re-register once.
+ARG TASKWEFT_ASSET=https://api.github.com/repos/V-Sekai-fire/service-bao-taskweft/releases/assets/631048195
+ARG TASKWEFT_SHA256=2adf8a9bbed0c9747888d84fe805e7451d20ef42ecdd8b738439a80e591d281c
+RUN --mount=type=secret,id=GH_TOKEN \
+    mkdir -p /bao/plugins && \
+    curl -fsSL -H "Authorization: Bearer $(cat /run/secrets/GH_TOKEN)" \
+      -H "Accept: application/octet-stream" "$TASKWEFT_ASSET" -o /bao/plugins/bao-plugin-taskweft && \
+    echo "$TASKWEFT_SHA256  /bao/plugins/bao-plugin-taskweft" | sha256sum -c - && \
+    chmod 0755 /bao/plugins/bao-plugin-taskweft && \
+    echo "$TASKWEFT_SHA256" > /bao/plugins/bao-plugin-taskweft.sha256
+
 # SSH tunnel to the listener for Bao-signed user certificates (RFD 2255)
 RUN apt-get update && apt-get install -y --no-install-recommends openssh-server && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* && \
