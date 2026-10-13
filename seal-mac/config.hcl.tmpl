@@ -1,0 +1,28 @@
+storage "raft" {
+  path    = "@DIR@/data"
+  node_id = "bao-seal"
+}
+
+listener "tcp" {
+  address                            = "@ADDR@:8210"
+  tls_cert_file                      = "@DIR@/pki/listener.pem"
+  tls_key_file                       = "@RUN@/listener.key"
+  tls_client_ca_file                 = "@DIR@/pki/root.pem"
+  tls_require_and_verify_client_cert = true
+  tls_min_version                    = "tls13"
+}
+
+seal "static" {
+  current_key_id = "keychain-1"
+  current_key    = "env://BAO_SEAL_KEY"
+}
+
+api_addr      = "https://bao-seal.internal:8210"
+cluster_addr  = "https://@ADDR@:8211"
+ui            = false
+
+audit "file" "file" {
+  options {
+    file_path = "@DIR@/audit.log"
+  }
+}
