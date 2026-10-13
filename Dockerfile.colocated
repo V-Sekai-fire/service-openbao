@@ -1,23 +1,10 @@
-# Bao on the weftspun-fdb machines (RFD 2147): the live FDB server image with the live Bao
-# image's binaries copied in unchanged, so the plugin catalog's SHA-256 values still match.
-ARG BAO_IMAGE=registry.fly.io/weftspun-bao:deployment-01M4HX5F4R9DPMQP209C2499Z7
-ARG FDB_IMAGE=registry.fly.io/weftspun-fdb:fdb-memory-f77503d
-
-FROM ${BAO_IMAGE} AS bao
-
-FROM ${FDB_IMAGE}
-RUN apt-get update && apt-get install -y --no-install-recommends libsqlite3-0 openssh-server && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* && \
-    useradd --system --no-create-home --shell /usr/sbin/nologin tunnel && usermod -p '*' tunnel && \
-    mkdir -p /bao/config /var/run/tailscale
-COPY --from=bao /usr/bin/bao /usr/bin/dumb-init /usr/bin/tailscale /usr/bin/
-COPY --from=bao /usr/sbin/tailscaled /usr/sbin/tailscaled
-COPY --from=bao /bao/plugins /bao/plugins
-COPY --from=bao /etc/ssh/sshd_config /etc/ssh/bao_ssh_ca.pub /etc/ssh/
-COPY --from=bao /entrypoint.sh /usr/local/bin/bao-entrypoint.sh
-COPY --from=bao /usr/local/bin/renew-listener.sh /usr/local/bin/renew-listener.sh
-COPY config-colocated.hcl /bao/config/config.hcl
+# Bao on the weftspun-fdb machines (RFD 2147), layered on the running colocated image, which
+# carries the FDB server and the Bao binaries and plugins with their catalog hashes.
+ARG BASE_IMAGE=registry.fly.io/weftspun-fdb:colocated-20261013204638
+FROM ${BASE_IMAGE}
+RUN apt-get update && apt-get install -y --no-install-recommends socat && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY base-colocated.hcl /bao/config/base.hcl
 COPY colocated-entrypoint.sh /usr/local/bin/colocated-entrypoint.sh
 RUN chmod +x /usr/local/bin/colocated-entrypoint.sh
-EXPOSE 2222 8200 8201
 ENTRYPOINT ["/usr/local/bin/colocated-entrypoint.sh"]
