@@ -12,6 +12,16 @@ an SSH tunnel with a certificate the server signs itself. RFD 2140 owns the stor
 
 ## Deploy
 
+Bao runs on the three `weftspun-fdb` machines, one HA instance beside each FDB server (RFD 2147).
+`Dockerfile.colocated` layers the live Bao image's files onto the live FDB image. Build it into the
+FDB app's registry, then roll it one machine at a time and unseal each instance:
+
+```sh
+flyctl deploy --build-only --push -a weftspun-fdb --dockerfile Dockerfile.colocated --image-label <tag> --remote-only -c /dev/null .
+```
+
+The single-machine app below is what it replaces.
+
 ```sh
 fly deploy --build-secret GH_TOKEN="$(gh auth token)"
 ```
