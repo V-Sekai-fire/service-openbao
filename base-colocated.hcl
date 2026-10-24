@@ -17,7 +17,7 @@ listener "tcp" {
   tls_require_and_verify_client_cert = true
   tls_min_version                    = "tls13"
   # OpenBao gates the unauthenticated Shamir recovery endpoints behind these
-  # toggles (Vault registers them by default). RFD 2144 defects #10 and #11:
+  # toggles (Vault registers them by default). RFD66606-2144 defects #10 and #11:
   # sys/rekey/init returned 405 and sys/generate-root-token/attempt returned
   # 403 without these. The endpoints are still authenticated by holding one
   # unseal-key share -- the same trust boundary Vault always used.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Compares the live transit key's fingerprint with the one recorded when it was saved to 1Password (RFD 2147).
+# Compares the live transit key's fingerprint with the one recorded when it was saved to 1Password (RFD66606-2147).
 set -uo pipefail
 P="$HOME/Library/Application Support/bao-seal/pki"
 export BAO_ADDR="https://$(tailscale ip -4):8210" BAO_TLS_SERVER_NAME=bao-seal.internal BAO_CACERT="$P/root.pem" \

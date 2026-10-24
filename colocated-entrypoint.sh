@@ -1,5 +1,5 @@
 #!/bin/bash
-# FDB server in the foreground, Bao beside it as an FDB client of the same machine (RFD 2147).
+# FDB server in the foreground, Bao beside it as an FDB client of the same machine (RFD66606-2147).
 set -euo pipefail
 
 mkdir -p /data/bao

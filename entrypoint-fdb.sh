@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Tailscale sidecar (RFD 2195): private access from operator's tailnet peers.
+# Tailscale sidecar (RFD66606-2195): private access from operator's tailnet peers.
 # Fail-open: if TS_AUTHKEY is unset, Bao starts without Tailscale (internal
 # Fly network still works). A future unset thus rolls back cleanly without
 # breaking Bao.
@@ -15,7 +15,7 @@ if [ -n "${TS_AUTHKEY:-}" ]; then
       --tun=userspace-networking &
   sleep 2
   # Timeout + background so a broken tag / bad key / control-plane hiccup
-  # never blocks Bao startup. Fail-open per RFD 2195.
+  # never blocks Bao startup. Fail-open per RFD66606-2195.
   (
     timeout 30 tailscale up \
         --authkey="${TS_AUTHKEY}" \

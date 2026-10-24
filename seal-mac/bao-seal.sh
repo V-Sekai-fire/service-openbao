@@ -1,5 +1,5 @@
 #!/bin/bash
-# The Mac mini's transit Bao (RFD 2147): seal key and listener key come from the login Keychain.
+# The Mac mini's transit Bao (RFD66606-2147): seal key and listener key come from the login Keychain.
 set -euo pipefail
 DIR="$HOME/Library/Application Support/bao-seal"
 RUN=$(mktemp -d "${TMPDIR:-/tmp}/bao-seal.XXXX")
